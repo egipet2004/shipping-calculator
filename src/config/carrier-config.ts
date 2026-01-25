@@ -5,6 +5,7 @@ interface CarrierCredentials{
     apiSecret: string;
     endpoint: string;
     timeout: number;
+    accountNumber?: string;
 }
 
 interface CarrierConfiguration{
@@ -40,12 +41,7 @@ class CarrierConfigManager{
                 apiSecret: process.env.FEDEX_API_SECRET!,
                 endpoint: process.env.FEDEX_API_URL!,
                 timeout: defaultTimeout,
-            },
-            ups: {
-                apiKey: process.env.USPS_API_KEY!,
-                apiSecret: process.env.USPS_API_SECRET!,
-                endpoint: process.env.USPS_API_URL!,
-                timeout: defaultTimeout,
+                accountNumber: process.env.FEDEX_API_NUMBER!,
             }
         };
     }
