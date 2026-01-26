@@ -1,33 +1,64 @@
 import { Suspense } from 'react';
-import { RatesDisplay } from '@/components/results/RatesDisplay';
-import { fetchRates } from '@/lib/rates-api';
+import { RateService } from '@/services/rate-service';
 import { RateRequest } from '@/types/domain';
+import { RatesDisplay } from '@/components/results/RatesDisplay';
+import { ResultsSkeletonLoader } from '@/components/results/ResultsSkeletonLoader';
+import { SearchParamsTracker } from '@/components/results/SearchParamsTracker'; 
+
+const mockRequest: RateRequest = {
+  origin: {
+    name: "Sender Name",
+    street1: "123 Origin St",
+    city: "New York",
+    state: "NY",
+    postalCode: "10001",
+    country: "US"
+  },
+  destination: {
+    name: "Receiver Name",
+    street1: "456 Dest Ave",
+    city: "Beverly Hills",
+    state: "CA",
+    postalCode: "90210",
+    country: "US"
+  },
+  package: {
+    id: "pkg-1",
+    type: "box",
+    weight: { value: 5, unit: "lbs" },
+    dimensions: { length: 10, width: 10, height: 10, unit: "in" },
+    declaredValue: 100
+  },
+  options: {
+    speed: "standard",
+    signatureRequired: true,
+    insurance: true,
+    fragileHandling: false,
+    saturdayDelivery: false
+  }
+};
 
 export default function ResultsPage() {
-  const mockRequest: RateRequest = {
-    origin: { postalCode: "10001", city: "NY", state: "NY", country: "US", name: "Sender", street1: "123 St" },
-    destination: { postalCode: "90210", city: "LA", state: "CA", country: "US", name: "Receiver", street1: "456 St" },
-    package: { weight: { value: 5, unit: "lbs" }, dimensions: { length: 10, width: 10, height: 10, unit: "in" }, type: "box", id: "1" },
-    options: { speed: "standard", insurance: true, signatureRequired: true, fragileHandling: false, saturdayDelivery: false }
-  };
-
-  const ratesPromise = fetchRates(mockRequest);
+  const service = new RateService();
+  const ratesPromise = service.fetchAllRates(mockRequest);
 
   return (
-    <div className="container mx-auto py-10 px-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8 text-gray-800">Shipping Rates (React 19 Demo)</h1>
-      <Suspense fallback={<ResultsSkeleton />}>
-        <RatesDisplay ratesPromise={ratesPromise} />
-      </Suspense>
-    </div>
-  );
-}
-function ResultsSkeleton() {
-  return (
-    <div className="space-y-4 animate-pulse">
-      <div className="h-24 bg-gray-200 rounded-md"></div>
-      <div className="h-24 bg-gray-200 rounded-md"></div>
-      <div className="h-24 bg-gray-200 rounded-md"></div>
-    </div>
+    <main className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
+            Shipping Rate Comparison
+          </h1>
+          <p className="mt-2 text-sm text-gray-500">
+            Real-time rates from FedEx, UPS, and USPS.
+          </p>
+        </div>
+
+        <Suspense fallback={<ResultsSkeletonLoader />}>
+          <RatesDisplay ratesPromise={ratesPromise} />
+          <SearchParamsTracker />
+        </Suspense>
+      </div>
+    </main>
   );
 }

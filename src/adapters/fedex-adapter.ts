@@ -39,7 +39,7 @@ export class FedExAdapter implements CarrierAdapter {
             serviceName: "FedEx 2Day",
             ratedShipmentDetails: [
               {
-                totalNetCharge: 10.00,
+                totalNetCharge: 50.00,
                 currency: "USD"
               }
             ],
@@ -52,7 +52,7 @@ export class FedExAdapter implements CarrierAdapter {
             serviceName: "FedEx Standard Overnight",
             ratedShipmentDetails: [
               {
-                totalNetCharge: 10.00,
+                totalNetCharge: 25.00,
                 currency: "USD"
               }
             ],
