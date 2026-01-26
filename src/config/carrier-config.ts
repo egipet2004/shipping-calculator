@@ -36,7 +36,7 @@ class CarrierConfigManager{
     private loadConfiguration(): CarrierConfiguration {
     const defaultTimeout = 5000;
         return {
-            fedex: {
+            FedEx: {
                 apiKey: process.env.FEDEX_API_KEY!,
                 apiSecret: process.env.FEDEX_API_SECRET!,
                 endpoint: process.env.FEDEX_API_URL!,
