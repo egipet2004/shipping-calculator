@@ -99,6 +99,20 @@ export class StateCodeValidator extends BaseValidator<AddressInformation> {
                 };
             }
         }
+        if (country === 'CA') {
+            if (!state) return { isValid: true, errors: [] };
+            const caStateRegex = /^[A-Z]\d[A-Z][ -]?\d[A-Z]\d$/i;
+            if (!caStateRegex.test(state)) {
+                return {
+                    isValid: false,
+                    errors: [{
+                        name: 'state',
+                        message: 'Canadian state must be a 2-letter (NY, CA)',
+                        code: 'INVALID_STATE_CODE'
+                    }]
+                };
+            }
+        }
         return {
             isValid: true,
             errors: []

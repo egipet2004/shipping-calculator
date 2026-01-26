@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ShippingRate, CarrierName } from '@/types/domain';
 import { RatesFilters } from './RatesFilters';
 import { CarrierLogo, FeaturesList, FeeBreakdown } from './TableHelpers';
-import { BestValueBadge } from './BestValueBsdge'; 
+import { BestValueBadge } from './BestValueBsdge';
 
 interface RatesComparisonTableProps {
   rates: ShippingRate[];
@@ -95,18 +95,15 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
     return (
       <th 
         scope="col" 
-        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-        aria-sort={isActive ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+        className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer group select-none"
+        onClick={() => handleSort(field)}
       >
-        <button 
-          onClick={() => handleSort(field)}
-          className="group flex items-center gap-1 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 -ml-1"
-        >
+        <div className="flex items-center gap-1">
           {label}
-          <span className={`text-gray-400 ${isActive ? 'text-blue-600' : 'opacity-0 group-hover:opacity-50'}`}>
-            {isActive && sortDirection === 'desc' ? '↓' : '↑'}
+          <span className={`transition-opacity duration-200 ${isActive ? 'opacity-100 text-blue-500' : 'opacity-0 group-hover:opacity-50'}`}>
+            {sortDirection === 'asc' ? '↑' : '↓'}
           </span>
-        </button>
+        </div>
       </th>
     );
   };
@@ -120,78 +117,88 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
       />
       
       <div 
-        className="overflow-x-auto bg-white rounded-lg shadow border border-gray-200"
+        className="bg-white rounded-lg shadow-sm border border-gray-100" 
         role="region" 
         aria-label="Shipping rates comparison table"
-        tabIndex={0} 
       >
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-100">
+          <thead className="bg-white border-b border-gray-100">
             <tr>
               <SortableHeader field="carrier" label="Carrier" />
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              
+              <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Features
               </th>
+              
               <SortableHeader field="estimatedDeliveryDate" label="Delivery" />
-              <SortableHeader field="totalCost" label="Cost Breakdown" />
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              
+              <th 
+                scope="col" 
+                className="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer group select-none"
+                onClick={() => handleSort('totalCost')}
+              >
+                 <div className="flex items-center gap-1">
+                    Cost Breakdown
+                    <span className={`transition-opacity duration-200 ${sortField === 'totalCost' ? 'opacity-100 text-blue-500' : 'opacity-0 group-hover:opacity-50'}`}>
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </span>
+                 </div>
+              </th>
+              
+              <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
                 Action
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-50">
             {displayedRates.map((rate) => {
               const isCheapest = rate.id === bestValues.cheapestId;
               const isFastest = rate.id === bestValues.fastestId;
               const isBestValue = rate.id === bestValues.bestValueId;
 
               return (
-                <tr key={rate.id} className={`hover:bg-blue-50 transition-colors ${isBestValue ? 'bg-blue-50/30' : ''}`}>
+                <tr key={rate.id} className={`hover:bg-gray-50 transition-colors ${isBestValue ? 'bg-purple-50/20' : ''}`}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 mr-3">
+                      <div className="flex-shrink-0 mr-4 h-10 w-10 flex items-center justify-center border border-gray-100 rounded bg-white">
                         <CarrierLogo carrier={rate.carrier} />
                       </div>
                       <div>
                         <div className="text-sm font-bold text-gray-900">{rate.carrier}</div>
                         <div className="text-xs text-gray-500">{rate.serviceName}</div>
                         
-                        <div className="mt-1 flex flex-col items-start gap-1" aria-label="Badges">
+                        <div className="mt-1 flex flex-wrap gap-1">
                           {isBestValue && <BestValueBadge type="best-value" />}
-                          {isCheapest && !isBestValue && <BestValueBadge type="cheapest" />}
-                          {isFastest && !isBestValue && <BestValueBadge type="fastest" />}
                         </div>
                       </div>
                     </div>
                   </td>
                   
-                  <td className="px-6 py-4 max-w-xs">
+                  <td className="px-6 py-4 max-w-xs text-sm text-gray-500">
                     <FeaturesList features={rate.features} />
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
+                    <div className="text-sm font-medium text-gray-900">
                       {formatDate(rate.estimatedDeliveryDate)}
                     </div>
-                    {rate.guaranteedDelivery && (
-                      <span className="text-xs text-green-600 flex items-center" aria-label="Guaranteed delivery">
-                        <span aria-hidden="true">✓</span> Guaranteed
-                      </span>
-                    )}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap align-top">
-                    <FeeBreakdown 
-                      baseRate={rate.baseRate} 
-                      fees={rate.additionalFees.map(f => ({ name: f.type, amount: f.amount }))} 
-                      total={rate.totalCost} 
-                    />
+                    <div className="flex flex-col items-start">
+                        <span className="text-lg font-bold text-gray-900">${rate.totalCost.toFixed(2)}</span>
+                        <FeeBreakdown 
+                          baseRate={rate.baseRate} 
+                          fees={rate.additionalFees.map(f => ({ name: f.type, amount: f.amount }))} 
+                          total={rate.totalCost} 
+                        />
+                    </div>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
                     <button 
-                      className="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      aria-label={`Select ${rate.carrier} ${rate.serviceName} for $${rate.totalCost}`}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md text-sm shadow-sm transition-colors"
+                      aria-label={`Select ${rate.carrier}`}
                     >
                       Select
                     </button>

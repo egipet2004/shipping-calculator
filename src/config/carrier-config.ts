@@ -1,6 +1,6 @@
 import { CarrierName } from "@/types/domain";
 
-interface CarrierCredentials{
+interface CarrierCredentials {
     apiKey: string;
     apiSecret: string;
     endpoint: string;
@@ -8,33 +8,33 @@ interface CarrierCredentials{
     accountNumber?: string;
 }
 
-interface CarrierConfiguration{
+interface CarrierConfiguration {
     [key: string]: CarrierCredentials;
 }
 
-class CarrierConfigManager{
+export class CarrierConfigManager {
     private static instance: CarrierConfigManager;
     private config: CarrierConfiguration;
 
-    private constructor(){
+    private constructor() {
         this.config = this.loadConfiguration();
     }
 
-    static getInstance(): CarrierConfigManager{
-        if(!CarrierConfigManager.instance)
+    static getInstance(): CarrierConfigManager {
+        if (!CarrierConfigManager.instance)
             CarrierConfigManager.instance = new CarrierConfigManager();
         return CarrierConfigManager.instance;
     }
 
-    getCarrierCredentials(carrier: CarrierName): CarrierCredentials{
-        if(!this.config[carrier])
+    getCarrierCredentials(carrier: CarrierName): CarrierCredentials {
+        if (!this.config[carrier])
             throw new Error(`Configuration for carrier "${carrier}" not found`);
         return this.config[carrier];
-    
+
     }
 
     private loadConfiguration(): CarrierConfiguration {
-    const defaultTimeout = 5000;
+        const defaultTimeout = 5000;
         return {
             FedEx: {
                 apiKey: process.env.FEDEX_API_KEY!,

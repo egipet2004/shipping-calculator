@@ -17,7 +17,7 @@ export class RateService {
     
     const carriersToQuery: CarrierName[] = request.carriers && request.carriers.length > 0
       ? request.carriers
-      : ['FedEx', 'UPS', 'USPS', 'DHL'];
+      : ['FedEx'];
 
     const promises = carriersToQuery.map(carrier => 
       this.fetchCarrierRate(carrier, request)
