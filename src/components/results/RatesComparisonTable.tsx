@@ -54,9 +54,9 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
 
   const displayedRates = useMemo(() => {
     let result = [...rates];
-    if (selectedCarriers.length > 0) {
+    if (selectedCarriers.length > 0) 
       result = result.filter(r => selectedCarriers.includes(r.carrier));
-    }
+
     result.sort((a, b) => {
       let valA: any = a[sortField];
       let valB: any = b[sortField];
@@ -90,9 +90,25 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
     return new Date(dateStr).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   };
 
-  const SortIcon = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return <span className="text-gray-300 ml-1">↕</span>;
-    return <span className="text-blue-600 ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+  const SortableHeader = ({ field, label }: { field: SortField, label: string }) => {
+    const isActive = sortField === field;
+    return (
+      <th 
+        scope="col" 
+        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+        aria-sort={isActive ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+      >
+        <button 
+          onClick={() => handleSort(field)}
+          className="group flex items-center gap-1 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 -ml-1"
+        >
+          {label}
+          <span className={`text-gray-400 ${isActive ? 'text-blue-600' : 'opacity-0 group-hover:opacity-50'}`}>
+            {isActive && sortDirection === 'desc' ? '↓' : '↑'}
+          </span>
+        </button>
+      </th>
+    );
   };
 
   return (
@@ -103,21 +119,24 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
         onToggleCarrier={handleCarrierToggle} 
       />
       
-      <div className="overflow-x-auto bg-white rounded-lg shadow border border-gray-200">
+      <div 
+        className="overflow-x-auto bg-white rounded-lg shadow border border-gray-200"
+        role="region" 
+        aria-label="Shipping rates comparison table"
+        tabIndex={0} 
+      >
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th onClick={() => handleSort('carrier')} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none">
-                Carrier <SortIcon field="carrier" />
+              <SortableHeader field="carrier" label="Carrier" />
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Features
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Features</th>
-              <th onClick={() => handleSort('estimatedDeliveryDate')} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none">
-                Delivery <SortIcon field="estimatedDeliveryDate" />
+              <SortableHeader field="estimatedDeliveryDate" label="Delivery" />
+              <SortableHeader field="totalCost" label="Cost Breakdown" />
+              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Action
               </th>
-              <th onClick={() => handleSort('totalCost')} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 select-none">
-                Cost Breakdown <SortIcon field="totalCost" />
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -136,12 +155,12 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
                       <div>
                         <div className="text-sm font-bold text-gray-900">{rate.carrier}</div>
                         <div className="text-xs text-gray-500">{rate.serviceName}</div>
-                        <div className="mt-1 flex flex-col items-start gap-1">
+                        
+                        <div className="mt-1 flex flex-col items-start gap-1" aria-label="Badges">
                           {isBestValue && <BestValueBadge type="best-value" />}
                           {isCheapest && !isBestValue && <BestValueBadge type="cheapest" />}
                           {isFastest && !isBestValue && <BestValueBadge type="fastest" />}
                         </div>
-
                       </div>
                     </div>
                   </td>
@@ -151,8 +170,14 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{formatDate(rate.estimatedDeliveryDate)}</div>
-                    {rate.guaranteedDelivery && <span className="text-xs text-green-600 flex items-center">✓ Guaranteed</span>}
+                    <div className="text-sm text-gray-900">
+                      {formatDate(rate.estimatedDeliveryDate)}
+                    </div>
+                    {rate.guaranteedDelivery && (
+                      <span className="text-xs text-green-600 flex items-center" aria-label="Guaranteed delivery">
+                        <span aria-hidden="true">✓</span> Guaranteed
+                      </span>
+                    )}
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap align-top">
@@ -164,7 +189,10 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
                   </td>
 
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button className="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm shadow-sm">
+                    <button 
+                      className="text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      aria-label={`Select ${rate.carrier} ${rate.serviceName} for $${rate.totalCost}`}
+                    >
                       Select
                     </button>
                   </td>

@@ -3,7 +3,7 @@ import { RateService } from '@/services/rate-service';
 import { RateRequest } from '@/types/domain';
 import { RatesDisplay } from '@/components/results/RatesDisplay';
 import { ResultsSkeletonLoader } from '@/components/results/ResultsSkeletonLoader';
-import { SearchParamsTracker } from '@/components/results/SearchParamsTracker'; 
+import { SearchParamsTracker } from '@/components/results/SearchParamsTracker';
 
 const mockRequest: RateRequest = {
   origin: {
