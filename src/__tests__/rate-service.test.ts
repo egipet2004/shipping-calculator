@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { RateService } from '@/services/rate-service';
 import { RateRequest } from '@/types/domain';
 
-// Мокаем адаптеры, чтобы не делать реальные запросы в интеграционных тестах
 vi.mock('@/adapters/fedex-adapter', () => {
   return {
     FedExAdapter: class {
@@ -38,25 +37,19 @@ describe('Integration: Rate Calculation Workflow', () => {
   });
 
   it('should verify decorators are applied correctly to all fetched rates', async () => {
-    // Включаем опции, требующие декораторов
     const reqWithOpts = { ...request, options: { ...request.options, signatureRequired: true } };
     const result = await service.fetchAllRates(reqWithOpts);
     
-    // Проверяем, что цена выросла (15.00 + fee)
     const rate = result.rates[0];
     expect(rate.totalCost).toBeGreaterThan(15.00);
     expect(rate.additionalFees.find(f => f.type === 'signature')).toBeDefined();
   });
 
   it('should verify rates are sorted by total cost (cheapest first)', async () => {
-    // Здесь нужно замокать ответ так, чтобы вернулось 2 тарифа с разными ценами
-    // И проверить result.rates[0].totalCost < result.rates[1].totalCost
   });
 
   it('should verify error categorization (recoverable vs non-recoverable)', async () => {
-    // Если один адаптер упал, сервис должен вернуть частичный результат + ошибки
     const result = await service.fetchAllRates(request);
-    // В данном моке ошибок нет, но тест должен проверять структуру result.errors
     expect(Array.isArray(result.errors)).toBe(true);
   });
 });

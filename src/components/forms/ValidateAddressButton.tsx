@@ -19,7 +19,7 @@ export function ValidateAddressButton() {
           Checking...
         </span>
       ) : (
-        'Check Address (Server Validate)'
+        'Check Address'
       )}
     </button>
   );

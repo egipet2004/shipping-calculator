@@ -71,7 +71,7 @@ export function ShippingOptionsStep({ options, onChange }: ShippingOptionsStepPr
                   type="number"
                   min="0"
                   placeholder="0.00"
-                  className="w-full rounded border-gray-300 p-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  className="w-full rounded border border-gray-300 bg-white text-gray-900 p-1.5 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   value={options.insuredValue || ''}
                   onChange={(e) => onChange({...options, insuredValue: parseFloat(e.target.value)})}
                 />

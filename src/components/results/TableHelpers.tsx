@@ -79,7 +79,7 @@ export function FeeBreakdown({ baseRate, fees, total }: FeeBreakdownProps) {
               <span>${fee.amount.toFixed(2)}</span>
             </div>
           ))}
-          <div className="border-t border-gray-200 mt-1 pt-1 flex justify-between font-medium">
+          <div className="border-t border-gray-200 mt-1 pt-1 text-gray-900 flex justify-between font-medium">
             <span>Total:</span>
             <span>${total.toFixed(2)}</span>
           </div>
