@@ -93,7 +93,7 @@ export function AddressForm({ title, address, onChange, getFieldError }: Address
         )}
 
         <div className="space-y-2">
-           {renderField('Full Name', 'name', true, 'w-full', 'name')}
+           {renderField('Full Name', 'name', false, 'w-full', 'name')}
         </div>
 
         <div className="space-y-2">

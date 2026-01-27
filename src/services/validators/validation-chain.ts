@@ -1,4 +1,4 @@
-import { AddressInformation, Package } from "@/types/domain";
+import { AddressInformation, Package, ShippingOptions} from "@/types/domain";
 
 export interface ValidationResult{
     isValid: boolean;
@@ -58,28 +58,40 @@ export class RequiredFieldsValidator extends BaseValidator<AddressInformation> {
     }
 }
 
-export class PostalCodeFormatValidator extends BaseValidator<AddressInformation>{
+export class PostalCodeFormatValidator extends BaseValidator<AddressInformation> {
     protected doValidation(data: AddressInformation): ValidationResult {
-        const {country, postalCode} = data;
-        if(country === 'US'){
-            const reqPostal = /^\d{5}(-\d{4})?$/;
-            if(!reqPostal.test(postalCode)){
-                return {
-                    isValid: false,
-                    errors: [{
-                        name: 'postalCode',
-                        message: 'US zip must be 12345 or 12345-6789',
-                        code: 'Invalid ZIP'
-                    }]
-                };
+        const { country, postalCode } = data;
+        
+        const patterns: Record<string, { regex: RegExp, msg: string }> = {
+            'US': { 
+                regex: /^\d{5}(-\d{4})?$/, 
+                msg: 'US zip must be 12345 or 12345-6789' 
+            },
+            'CA': { 
+                regex: /^[A-Z]\d[A-Z][ ]?\d[A-Z]\d$/i, 
+                msg: 'Canadian postal code must be A1B 2C3' 
+            },
+            'UK': { 
+                regex: /^[A-Z]{1,2}\d[A-Z\d]? [0-9][A-Z]{2}$/i, 
+                msg: 'UK postcode must be like SW1W 0NY' 
             }
-        }
-        return {
-            isValid: true,
-            errors: []
         };
+
+        const pattern = patterns[country];
+        if (pattern && !pattern.regex.test(postalCode)) {
+            return {
+                isValid: false,
+                errors: [{
+                    name: 'postalCode',
+                    message: pattern.msg,
+                    code: 'INVALID_POSTAL_CODE'
+                }]
+            };
+        }
+
+        return { isValid: true, errors: [] };
     }
-} 
+}
 
 
 export class StateCodeValidator extends BaseValidator<AddressInformation> {
@@ -175,5 +187,24 @@ export class WeightValidator extends BaseValidator<Package> {
             };
         }
         return { isValid: true, errors: [] };
+    }
+}
+
+export class InsuranceValidator extends BaseValidator<ShippingOptions> {
+    protected doValidation(data: ShippingOptions): ValidationResult {
+        if (data.insurance && (!data.insuredValue || data.insuredValue <= 0)) {
+            return {
+                isValid: false,
+                errors: [{
+                    name: 'insuredValue',
+                    message: 'Please enter a valid insured value',
+                    code: 'INSURANCE_VALUE_MISSING'
+                }]
+            };
+        }
+        return {
+            isValid: true,
+            errors: []
+        };
     }
 }

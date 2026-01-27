@@ -3,6 +3,8 @@ import { RateRequest } from '@/types/domain';
 import { createAddressValidationChain, createPackageValidationChain } from '@/services/validators';
 import { ValidationResult, ValidationError } from '@/services/validators/validation-chain';
 import { saveFormState, loadFormState, clearFormState } from '@/lib/form-storage';
+import { InsuranceValidator } from '@/services/validators/validation-chain';
+
 
 const initialFormState: RateRequest = {
   origin: { name: '', street1: '', city: '', state: '', postalCode: '', country: 'US', street2: '', phone: '' },
@@ -100,6 +102,8 @@ export const usePackageForm = () => {
       const allErrors = [...originErrors, ...destErrors];
       result = { isValid: allErrors.length === 0, errors: allErrors };
     }
+    else if(currentStep === 3)
+      result = new InsuranceValidator().validate(formData.options);
     
     if (result.isValid) {
       setCurrentStep(prev => Math.min(prev + 1, 4));
