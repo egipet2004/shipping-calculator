@@ -24,7 +24,7 @@ export type ValidationState = {
 };
 
 export async function validateAddress(
-  prevState: ValidationState,
+  _prevState: ValidationState,
   formData: FormData
 ): Promise<ValidationState> {
   const rawData = Object.fromEntries(formData.entries());
