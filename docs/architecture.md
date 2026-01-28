@@ -1,82 +1,101 @@
-Multi-Carrier Shipping Rate Calculator
-
-Это веб-приложение для расчета стоимости доставки посылок различными курьерскими службами (FedEx, UPS, USPS и др.). Проект строился с упором на строгую типизацию, архитектурные паттерны и доступность.
-
-
-
-STACK 
-
-Framework: Next.js 16 (App Router)
-Language: TypeScript 5+ (Strict Mode)
-Styling: Tailwind CSS 4
-Testing: Vitest
-Validation: Zod (для серверной части) + Кастомная логика (для клиента)
-State Persistence: LocalStorage API
-
-
-
-Architecture and Structure
-
-  - 1. Доменная модель (src/types/domain.ts)
-  Разработана строгая система типов TypeScript, описывающая основные сущности приложения:
-
-  -RateRequest — полный объект запроса (адреса, посылка, опции).
-  -AddressInformation — структура почтового адреса.
-  -Package — параметры груза (размеры, вес, тип упаковки).
-  -ShippingOptions — дополнительные услуги (страховка, хрупкий груз, доставка в выходные).
-
-  - 2. Запланированные паттерны (Design Patterns)
-
-  -Strategy Pattern (Стратегия): Для переключения алгоритмов расчета разных перевозчиков (FedEx, UPS).
-  -Factory Method (Фабричный метод): Для создания экземпляров сервисов доставки.
-  -Decorator (Декоратор): Для динамического добавления наценок к стоимости (страховка, упаковка).
-  -Adapter (Адаптер): Для унификации ответов от внешних API курьерских служб.
-
-  - 3. Конфигурация
-  Реализован Singleton Pattern для управления конфигурацией (src/config/carrier-config.ts).
+src/
+├── adapters/
+│   ├── carrier-adapters/  # Concrete Adapter implementations (FedEx, UPS)
+│   └── carrier-factory.ts # Factory function for adapter creation
+├── app/                   # Next.js App Router (Pages & Server Actions)
+├── components/
+│   ├── forms/             # Multi-step form logic & reusable fields
+│   └── results/           # Rate display, sorting, and filtering components
+├── config/                # Singleton CarrierConfigManager
+├── hooks/                 # Custom hooks (usePackageForm, useAddressValidation)
+├── services/
+│   ├── fee-decorators/    # Decorator pattern implementations
+│   ├── rate-service.ts    # Main orchestration service
+│   └── validators/        # Chain of Responsibility validators
+└── types/                 # Domain interfaces (ShippingRate, Address, Package)
 
 
+## Design Patterns
 
+### 1. Adapter Pattern - API Integration
 
-Form fuctional and UX 
+**Problem**: Each carrier API (FedEx, UPS, USPS) returns data in completely different formats (SOAP, XML, JSON) with different field names.
 
-  - 1. Многошаговая форма (Multi-step Form)
-  Реализован процесс оформления из 4 шагов с сохранением прогресса:
+**Solution**: Create adapter classes that normalize external API responses into a consistent internal format.
 
-  -Package Details: Ввод размеров (дюймы/см) и веса (lbs/kg).
-  -Route: Адреса отправления (Origin) и получения (Destination).
-  -Options: Выбор скорости доставки и дополнительных услуг.
-  -Review: Итоговая сводка данных перед расчетом.
+**Implementation**:
+- **Interface**: `CarrierAdapter` (located in `src/adapters/carrier-adapters/`)
+- **Concrete Adapters**: `FedExAdapter`, `UPSAdapter`, `USPSAdapter`
+- **Mechanism**: Each adapter implements the `fetchRates(request)` method and transforms the provider-specific response into a uniform `ShippingRate[]` array.
 
-  Кастомный хук usePackageForm управляет состоянием, переключением шагов и агрегацией данных.
+**Benefits**:
+- Uniform interface regardless of carrier.
+- Easy to add new carriers without breaking the service layer.
+- Isolates external API changes (e.g., if FedEx changes their API, we only update `FedExAdapter`).
 
-  - 2. Система валидации 
-  Для проверки данных применен паттерн Chain of Responsibility. Это позволяет гибко настраивать и комбинировать правила проверки.
+### 2. Simple Factory Function - Adapter Creation
 
-  Валидаторы:
+**Problem**: The application needs a clean way to obtain the correct adapter instance based on the carrier name string selected by the user.
 
-  -RequiredFieldsValidator — проверка наличия обязательных полей.
-  -PostalCodeFormatValidator — проверка формата ZIP-кода (специфично для США).
-  -DimensionsValidator — проверка на корректность размеров и лимиты перевозчиков (макс. 165 дюймов в обхвате).
-  -WeightValidator — проверка веса (лимит 150 lbs).
+**Solution**: A simple factory function that maps carrier names to adapter instances.
 
-  Логика: При нажатии "Next Step" запускается цепочка. Если один из валидаторов находит ошибку, процесс останавливается, и ошибка возвращается в UI.
+**Implementation**:
+- **Function**: `getCarrierAdapter(carrier: CarrierName): CarrierAdapter` (in `src/factories/carrier-factory.ts`)
+- **Logic**: Switches on the carrier name and returns the appropriate adapter class. Handles logic for returning Mock adapters in test environments.
 
-  - 3. Расчеты в реальном времени
-  Billable Weight: Хук useDimensionalWeight автоматически рассчитывает объемный вес посылки и подсказывает пользователю, какой вес будет использован для тарификации (фактический или объемный).
+**Benefits**:
+- Simple, no over-engineering.
+- Single point of adapter access.
+- Easy to test and mock dependencies.
 
-  - 4. Доступность (Accessibility / WCAG 2.1 AA)
-  Форма полностью адаптирована для пользователей с ограниченными возможностями:
+### 3. Decorator Pattern - Fee Application
 
-  Управление фокусом: При возникновении ошибки фокус ввода автоматически переносится на первое невалидное поле.
+**Problem**: Need to dynamically add fees (insurance, signature, fragile handling) to a shipping rate without modifying the base rate class or creating an explosion of subclasses (e.g., `FedExWithInsuranceAndSignature`).
 
-  ARIA-атрибуты: Используются aria-required, aria-invalid, aria-describedby и role="alert" для корректной работы скринридеров (Screen Readers).
+**Solution**: Wrap the base rate object in decorator classes that add fees dynamically.
 
-  Семантический HTML: Использование <fieldset> и <legend> для группировки связанных полей.
+**Implementation**:
+- **Interface**: `RateComponent`
+- **Base**: `BaseRate` (wraps the initial `ShippingRate`)
+- **Decorators**: `InsuranceDecorator`, `SignatureDecorator`, `FragileHandlingDecorator`, `SaturdayDeliveryDecorator` (in `src/services/fee-decorators/`)
+- **Logic**: Each decorator calls `super.getCost()` and adds its specific calculation.
 
-  Навигация с клавиатуры: Полная поддержка управления формой без мыши (включая кастомные радио-кнопки).
+**Benefits**:
+- Fees stack in any combination at runtime.
+- Base rate logic remains unchanged (Open/Closed Principle).
+- Each fee logic is independently testable.
 
-  - 5. Сохранение данных (Persistence)
-  Реализована защита от потери данных при случайной перезагрузке страницы:
+### 4. Singleton Pattern - Configuration
 
-  Auto-save: Данные сохраняются в localStorage автоматически (с задержкой/debounce, чтобы не нагружать браузер).
+**Problem**: Configuration (API Keys, Endpoints, Timeouts) should be loaded once from environment variables and shared globally across the application to avoid IO overhead and inconsistency.
+
+**Solution**: A Singleton class that loads and provides carrier credentials.
+
+**Implementation**:
+- **Class**: `CarrierConfigManager` (in `src/config/carrier-config.ts`)
+- **Mechanism**: Private constructor ensures the class cannot be instantiated with `new`. Access is provided via the static `getInstance()` method.
+
+**Benefits**:
+- Single source of truth for configuration.
+- Credentials loaded only once.
+- Consistent access to config across all adapters.
+
+## Data Flow
+
+1.  **User submits form**: Data is captured in the UI and sent via Next.js Server Action.
+2.  **Validation chain processes data**: Zod schemas and business rules (e.g., "PO Boxes not allowed for FedEx") validate the input.
+3.  **RateService orchestrates parallel carrier calls**: The service uses `Promise.allSettled` to fetch rates from all selected carriers concurrently.
+4.  **Adapters normalize API responses**: Raw JSON/XML from carriers is converted into the strict `ShippingRate` type.
+5.  **Decorators apply additional fees**: If the user selected options (e.g., Insurance), decorators wrap the rates and recalculate totals.
+6.  **Results sorted and displayed**: The final list is sorted by price/speed and returned to the UI.
+
+## Type Safety
+
+All types are strictly defined using TypeScript interfaces (`AddressInformation`, `Package`, `ShippingRate`). The project enforces `strict: true` in `tsconfig.json` and avoids `any` usage, ensuring compile-time safety across the entire data flow.
+
+## Performance Optimizations
+
+- **Parallel API Calls**: `Promise.allSettled` allows fetching rates from FedEx and UPS simultaneously, significantly reducing wait time.
+- **Token Caching**: The `FedExAdapter` caches OAuth tokens to avoid re-authenticating on every request.
+- **Server Actions**: Heavy logic resides on the server, reducing the client-side JavaScript bundle.
+- **Streaming (Suspense)**: The UI can display a loading skeleton while the server processes the rates.

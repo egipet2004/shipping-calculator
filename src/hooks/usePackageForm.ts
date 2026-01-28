@@ -102,8 +102,14 @@ export const usePackageForm = () => {
       const allErrors = [...originErrors, ...destErrors];
       result = { isValid: allErrors.length === 0, errors: allErrors };
     }
-    else if(currentStep === 3)
-      result = new InsuranceValidator().validate(formData.options);
+    else if (currentStep === 3) {
+      if (formData.options.insurance && (!formData.options.insuredValue || formData.options.insuredValue <= 0)) {
+          updateSection('options', { ...formData.options, insurance: false });
+          result = { isValid: true, errors: [] };
+      } else {
+          result = new InsuranceValidator().validate(formData.options);
+      }
+  }
     
     if (result.isValid) {
       setCurrentStep(prev => Math.min(prev + 1, 4));

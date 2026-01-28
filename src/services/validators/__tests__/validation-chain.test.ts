@@ -71,7 +71,7 @@ describe('Validation Chain Unit Tests', () => {
       const validator = new PostalCodeFormatValidator();
       const result = validator.validate({ ...validAddress, postalCode: 'ABCDE' });
       expect(result.isValid).toBe(false);
-      expect(result.errors[0].code).toBe('Invalid ZIP');
+      expect(result.errors[0].code).toBe('INVALID_POSTAL_CODE');
     });
 
     it('should skip validation for non-US countries', () => {

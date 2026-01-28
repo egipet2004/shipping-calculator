@@ -3,7 +3,7 @@
 import { useId, useActionState } from 'react';
 import { AddressInformation } from '@/types/domain';
 import { useAddressValidation } from '@/hooks/useAddressValidation';
-import { validateAddress } from '@/app/api/validate-address/route';
+import { validateAddress } from '@/app/api/validate-address/route'; 
 import { ValidateAddressButton } from '../ValidateAddressButton'; 
 
 interface AddressFormProps {
@@ -38,7 +38,7 @@ export function AddressForm({ title, address, onChange, getFieldError }: Address
     widthClass: string = 'w-full',
     autoComplete?: string
   ) => {
-    const error = getFieldError?.(fieldName) || getLocalError(fieldName as string) || state.errors?.[fieldName]?.[0];
+    const error = getFieldError?.(fieldName) || getLocalError(fieldName as string) || (state.errors as any)?.[fieldName]?.[0];
     
     const inputId = `${baseId}-${fieldName}`;
     const errorId = `${baseId}-${fieldName}-error`;
@@ -75,6 +75,8 @@ export function AddressForm({ title, address, onChange, getFieldError }: Address
     );
   };
 
+  const isStateRequired = address.country === 'US' || address.country === 'CA';
+
   return (
     <section aria-labelledby={`${baseId}-title`} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
       <h3 id={`${baseId}-title`} className="font-semibold text-lg text-gray-800 border-b pb-2 mb-4">
@@ -108,28 +110,30 @@ export function AddressForm({ title, address, onChange, getFieldError }: Address
           <div className="space-y-2">
             {renderField('City', 'city', true, 'w-full', 'address-level2')}
           </div>
+          
           <div className="space-y-2">
             <label htmlFor={`${baseId}-state`} className="block text-sm font-medium text-gray-700 mb-1">
-              State <span className="text-red-500" aria-hidden="true">*</span>
+              {address.country === 'CA' ? 'Province' : address.country === 'UK' ? 'County (Optional)' : 'State'}
+              {isStateRequired && <span className="text-red-500" aria-hidden="true">*</span>}
             </label>
             <input
               id={`${baseId}-state`}
               name="state"
               type="text"
-              maxLength={2}
-              placeholder="NY"
+              maxLength={address.country === 'UK' ? 35 : 2}
+              placeholder={address.country === 'CA' ? 'ON' : address.country === 'UK' ? 'e.g. London' : 'NY'}
               autoComplete="address-level1"
               value={address.state}
-              onChange={(e) => handleChange('state', e.target.value.toUpperCase())}
-              aria-required="true"
-              aria-invalid={!!(getFieldError?.('state') || getLocalError('state') || state.errors?.state)}
+              onChange={(e) => handleChange('state', address.country === 'UK' ? e.target.value : e.target.value.toUpperCase())}
+              aria-required={isStateRequired}
+              aria-invalid={!!(getFieldError?.('state') || getLocalError('state') || (state.errors as any)?.state)}
               className={`w-full rounded-md border p-2 text-gray-900 shadow-sm outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-500 ${
-                (getFieldError?.('state') || getLocalError('state') || state.errors?.state) ? 'border-red-500 bg-red-50' : 'border-gray-300'
+                (getFieldError?.('state') || getLocalError('state') || (state.errors as any)?.state) ? 'border-red-500 bg-red-50' : 'border-gray-300'
               }`}
             />
-             {(getFieldError?.('state') || getLocalError('state') || state.errors?.state) && (
+             {(getFieldError?.('state') || getLocalError('state') || (state.errors as any)?.state) && (
               <p className="text-sm text-red-500 mt-1" role="alert">
-                {getFieldError?.('state') || getLocalError('state') || state.errors?.state?.[0]}
+                {getFieldError?.('state') || getLocalError('state') || (state.errors as any)?.state?.[0]}
               </p>
             )}
           </div>

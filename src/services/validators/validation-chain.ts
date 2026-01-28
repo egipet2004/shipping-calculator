@@ -1,4 +1,4 @@
-import { AddressInformation, Package, ShippingOptions} from "@/types/domain";
+import { AddressInformation, Package, ShippingOptions } from "@/types/domain";
 
 export interface ValidationResult{
     isValid: boolean;
@@ -39,14 +39,21 @@ abstract class BaseValidator<T> implements Validator<T>{
 }
 
 export class RequiredFieldsValidator extends BaseValidator<AddressInformation> {
-    private requiredFields: Array<keyof AddressInformation> = ['street1', 'city', 'state', 'postalCode', 'country'];
     protected doValidation(data: AddressInformation): ValidationResult {
         const errors: ValidationError[] = [];
-        for (const field of this.requiredFields) {
+        const fieldsToCheck: Array<keyof AddressInformation> = ['street1', 'city', 'postalCode', 'country'];
+        
+        if (data.country === 'US' || data.country === 'CA') {
+            fieldsToCheck.push('state');
+        } else {
+             
+        }
+
+        for (const field of fieldsToCheck) {
             if (!data[field] || (typeof data[field] === 'string' && data[field].trim() === '')) {
                 errors.push({
                     name: field,
-                    message: `${field} is required`,
+                    message: `${field === 'state' ? (data.country === 'CA' ? 'Province' : 'State') : field} is required`,
                     code: 'REQUIRED_FIELD_MISSING',
                 });
             }
@@ -72,7 +79,7 @@ export class PostalCodeFormatValidator extends BaseValidator<AddressInformation>
                 msg: 'Canadian postal code must be A1B 2C3' 
             },
             'UK': { 
-                regex: /^[A-Z]{1,2}\d[A-Z\d]? [0-9][A-Z]{2}$/i, 
+                regex: /^[A-Z]{1,2}\d[A-Z\d]? ?\d[A-Z]{2}$/i, 
                 msg: 'UK postcode must be like SW1W 0NY' 
             }
         };
@@ -97,41 +104,33 @@ export class PostalCodeFormatValidator extends BaseValidator<AddressInformation>
 export class StateCodeValidator extends BaseValidator<AddressInformation> {
     protected doValidation(data: AddressInformation): ValidationResult {
         const { country, state } = data;
-        if (country === 'US') {
-            if (!state) return { isValid: true, errors: [] };
-            const usStateRegex = /^[A-Z]{2}$/i;
-            if (!usStateRegex.test(state)) {
+        if (country === 'UK') {
+             return { isValid: true, errors: [] };
+        }
+        if (country === 'US' || country === 'CA') {
+            if (!state) return { isValid: true, errors: [] }; 
+            
+            const stateRegex = /^[A-Z]{2}$/i;
+            if (!stateRegex.test(state)) {
                 return {
                     isValid: false,
                     errors: [{
                         name: 'state',
-                        message: 'US state must be a 2-letter (NY, CA)',
+                        message: country === 'US' 
+                            ? 'US state must be 2 letters (NY)' 
+                            : 'Canadian province must be 2 letters (ON)',
                         code: 'INVALID_STATE_CODE'
                     }]
                 };
             }
         }
-        if (country === 'CA') {
-            if (!state) return { isValid: true, errors: [] };
-            const caStateRegex = /^[A-Z]\d[A-Z][ -]?\d[A-Z]\d$/i;
-            if (!caStateRegex.test(state)) {
-                return {
-                    isValid: false,
-                    errors: [{
-                        name: 'state',
-                        message: 'Canadian state must be a 2-letter (NY, CA)',
-                        code: 'INVALID_STATE_CODE'
-                    }]
-                };
-            }
-        }
+        
         return {
             isValid: true,
             errors: []
         };
     }
 }
-
 
 export class DimensionsValidator extends BaseValidator<Package> {
     protected doValidation(data: Package): ValidationResult {
@@ -147,10 +146,7 @@ export class DimensionsValidator extends BaseValidator<Package> {
             };
         }
         const multiplier = unit === 'cm' ? 1 / 2.54 : 1;
-        const lInches = length * multiplier;
-        const wInches = width * multiplier;
-        const hInches = height * multiplier;
-        const totalSize = lInches + 2 * (wInches + hInches);
+        const totalSize = (length * multiplier) + 2 * ((width * multiplier) + (height * multiplier));
         if (totalSize >= 165) {
             return {
                 isValid: false,
@@ -164,7 +160,6 @@ export class DimensionsValidator extends BaseValidator<Package> {
         return { isValid: true, errors: [] };
     }
 }
-
 
 export class WeightValidator extends BaseValidator<Package> {
     protected doValidation(data: Package): ValidationResult {
@@ -202,9 +197,6 @@ export class InsuranceValidator extends BaseValidator<ShippingOptions> {
                 }]
             };
         }
-        return {
-            isValid: true,
-            errors: []
-        };
+        return { isValid: true, errors: [] };
     }
 }
