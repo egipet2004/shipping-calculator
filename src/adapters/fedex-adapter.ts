@@ -238,7 +238,7 @@ export class FedExAdapter implements CarrierAdapter {
   }
 
   async trackPackage(trackingNumber: string): Promise<any> {
-    console.warn('FedEx Tracking is not implemented yet');
+    console.warn('FedEx Tracking is not implemented yet', trackingNumber);
     return null; 
   }
 }
