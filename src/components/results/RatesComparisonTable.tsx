@@ -145,9 +145,6 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
                  </div>
               </th>
               
-              <th scope="col" className="px-6 py-4 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">
-                Action
-              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-50">
@@ -195,14 +192,6 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
                     </div>
                   </td>
 
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
-                    <button 
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md text-sm shadow-sm transition-colors"
-                      aria-label={`Select ${rate.carrier}`}
-                    >
-                      Select
-                    </button>
-                  </td>
                 </tr>
               );
             })}

@@ -3,7 +3,7 @@
 import { useId, useActionState } from 'react';
 import { AddressInformation } from '@/types/domain';
 import { useAddressValidation } from '@/hooks/useAddressValidation';
-import { validateAddress } from '@/app/api/validate-address/route'; 
+import { validateAddress } from '@/app/api/validate-address/action'; 
 import { ValidateAddressButton } from '../ValidateAddressButton'; 
 
 interface AddressFormProps {
