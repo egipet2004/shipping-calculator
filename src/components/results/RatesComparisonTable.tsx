@@ -149,8 +149,6 @@ export function RatesComparisonTable({ rates }: RatesComparisonTableProps) {
           </thead>
           <tbody className="bg-white divide-y divide-gray-50">
             {displayedRates.map((rate) => {
-              const isCheapest = rate.id === bestValues.cheapestId;
-              const isFastest = rate.id === bestValues.fastestId;
               const isBestValue = rate.id === bestValues.bestValueId;
 
               return (
