@@ -1,6 +1,6 @@
 'use client';
 
-import { AddressInformation} from '@/types/domain';
+import { AddressInformation } from '@/types/domain';
 import { AddressForm } from '../fields/AddressForm';
 
 interface AddressStepProps {
@@ -28,7 +28,7 @@ export function AddressStep({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <AddressForm
           title="Origin Address (From)"
           address={origin}

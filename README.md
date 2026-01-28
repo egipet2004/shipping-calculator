@@ -108,5 +108,4 @@ By developing this project, the following technical skills were demonstrated:
 ### 📄 License and Author
 
 **Author**: **[egipet2004]**
-* [Portfolio Link](https://your-portfolio-link.com)
 * [GitHub Profile](https://github.com/egipet2004)
